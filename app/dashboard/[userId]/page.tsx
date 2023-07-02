@@ -7,15 +7,17 @@ import { PulseLoader } from 'react-spinners';
 
 export default function DashboardPage() {
   const params = useParams();
-  const user = params.userId;
+  const userId = params.userId;
   const [models, setModels] = useState<any>();
+  const [user, setUser] = useState<any>();
+  const [modelTokens, setModelTokens] = useState<any>();
 
   useEffect(() => {
     const fetchModels = async () => {
       const { data, error } = await supabase
         .from('trainings')
         .select('*')
-        .eq('user_id', user);
+        .eq('user_id', userId);
 
       if (error) {
         console.error(error);
@@ -24,7 +26,23 @@ export default function DashboardPage() {
       }
     };
 
+    const fetchUser = async () => {
+      const { data, error } = await supabase
+        .from('user-data')
+        .select('*')
+        .eq('id', userId);
+
+      if (error) {
+        console.error(error);
+      } else {
+        setModelTokens(data[0].model_tokens);
+
+        setUser(data);
+      }
+    };
+
     fetchModels();
+    fetchUser();
   }, []);
 
   return (
@@ -43,6 +61,13 @@ export default function DashboardPage() {
               };
               return <ModelCard props={props} key={data.run_id} />;
             })}
+            <div className="rounded-lg  dark:shadow-slate-300 hover:shadow-xl border border-black dark:border-white transition-all ease-in-out duration-75 hover:scale-[1.03] hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black">
+              <button className=" w-full h-full py-6">
+                <span className="font-bold text-xl mb-2">
+                  {modelTokens} tokens para entrenar
+                </span>
+              </button>
+            </div>
           </div>
         ) : (
           <div className="w-40 m-auto mt-24">
